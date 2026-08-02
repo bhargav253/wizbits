@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WizBits</title>
+    <link rel="stylesheet" href="style.css?v=friend-battle-setup-1" />
+  </head>
+  <body>
+    <main id="app">
+      <section class="login-screen" id="login-screen">
+        <div class="login-content">
+          <p class="eyebrow">WizBits</p>
+          <h1>Choose Your Player</h1>
+          <label for="player-name">Player name</label>
+          <input id="player-name" type="text" maxlength="18" autocomplete="nickname" placeholder="Type a name" />
+          <button id="login-button" type="button">Start</button>
+          <p id="login-message" class="login-message">Progress saves on this device.</p>
+        </div>
+      </section>
+
+      <canvas id="game-canvas" aria-label="WizBits 3D battle scene" hidden></canvas>
+      <div class="global-battle-points" id="global-battle-points" hidden>Battle Points 0</div>
+
+      <section class="load-screen" id="load-screen">
+        <div class="kitty-sticker" aria-label="Mystic Kitty sticker">
+          <div class="kitty-ear left"></div>
+          <div class="kitty-ear right"></div>
+          <div class="kitty-face">
+            <div class="kitty-eye left"></div>
+            <div class="kitty-eye right"></div>
+            <div class="kitty-sparkle">✦</div>
+            <div class="kitty-nose"></div>
+          </div>
+          <span>Mystic Kitty</span>
+        </div>
+        <div class="math-label">MATH</div>
+        <div class="profile-badge" id="profile-badge">
+          <span id="avatar-label">Fox</span>
+          <strong id="profile-name">Player</strong>
+          <span id="heart-label">Hearts 3/3</span>
+          <button id="backpack-button" type="button">Backpack</button>
+          <button id="home-my-pets-button" type="button">MY PETS</button>
+          <button id="home-grow-pets-button" type="button">GROW PETS</button>
+          <button id="home-battle-friend-button" type="button">BATTLE A FRIEND</button>
+          <button id="shop-button" type="button">Shop</button>
+          <button id="buy-heart-button" type="button">Buy Heart</button>
+        </div>
+        <div class="load-mascot" id="load-mascot" aria-hidden="true">
+          <div class="mascot-ear left"></div>
+          <div class="mascot-ear right"></div>
+          <div class="mascot-head">
+            <div class="mascot-eye left"></div>
+            <div class="mascot-eye right"></div>
+            <div class="mascot-muzzle">
+              <div class="mascot-nose"></div>
+            </div>
+          </div>
+          <div class="mascot-body"></div>
+          <div class="mascot-shadow"></div>
+        </div>
+        <div class="load-content">
+          <p class="eyebrow">WizBits</p>
+          <h1>Team Pet Battle</h1>
+          <div class="home-mode-actions">
+            <button id="home-bot-battle" type="button">Battle Bot</button>
+            <button id="home-friend-battle" type="button">Battle Friend</button>
+          </div>
+          <p class="load-copy">Pick a mode, connect elements, and help your pets win the match.</p>
+          <div class="load-secondary-actions">
+            <button id="load-challenges" class="secondary" type="button">Challenges</button>
+            <button id="load-events" class="secondary" type="button">Events</button>
+          </div>
+          <button id="load-play" class="play-button" type="button" aria-label="Play">▶</button>
+        </div>
+      </section>
+
+      <section class="challenge-screen" id="challenge-screen" hidden>
+        <div class="challenge-content">
+          <p class="eyebrow">Challenges</p>
+          <h2>Choose Battle Size</h2>
+          <div class="challenge-actions">
+            <button id="challenge-two" type="button">Battle 2 Pets</button>
+            <button id="challenge-four" type="button">Battle 4 Pets</button>
+            <button id="challenge-six" type="button">Battle 6 Pets</button>
+            <button id="challenge-eight" type="button">Battle 8 Pets</button>
+          </div>
+          <button id="challenge-back" class="secondary" type="button">Back</button>
+        </div>
+      </section>
+
+      <section class="blank-screen" id="blank-screen" hidden>
+        <button id="blank-back" class="secondary blank-back-button" type="button">Back</button>
+        <button id="adventure-button" class="adventure-button" type="button">Adventure Mode</button>
+        <button id="matchmaking-button" class="matchmaking-button" type="button">Matchmaking</button>
+        <button id="leaderboard-button" class="leaderboard-button" type="button">Leaderboard</button>
+        <button id="battle-shop-button" class="battle-shop-button" type="button">Battle Shop</button>
+        <button id="play-challenges-button" class="play-challenges-button" type="button">Challenges</button>
+        <button id="play-events-button" class="play-events-button" type="button">Events</button>
+        <button id="quiz-mode-button" class="quiz-mode-button" type="button">Quiz Mode</button>
+        <button id="my-pets-button" class="my-pets-button" type="button">MY PETS</button>
+        <button id="grow-pets-button" class="grow-pets-button" type="button">GROW PETS</button>
+        <button id="battle-friend-button" class="battle-friend-button" type="button">BATTLE VS FRIEND</button>
+        <div id="adventure-options" class="adventure-options" hidden>
+          <button id="forest-path-button" type="button">Forest Path</button>
+          <button id="number-beach-button" type="button">Number Beach</button>
+          <button id="puzzle-park-button" type="button">Puzzle Park</button>
+          <button id="pet-camp-button" type="button">Pet Camp</button>
+          <button id="boss-trail-button" type="button">Boss Trail</button>
+        </div>
+        <div id="forest-levels" class="forest-levels" hidden></div>
+        <div id="adventure-levels" class="forest-levels" hidden></div>
+      </section>
+
+      <section class="heart-shop-screen" id="heart-shop-screen" hidden>
+        <button id="heart-shop-back" class="secondary blank-back-button" type="button">Back</button>
+        <div id="heart-shop-balance" class="heart-shop-balance">Wiz Bucks 0</div>
+        <button id="heart-shop-buy" class="heart-shop-buy-button" type="button">Buy Heart</button>
+      </section>
+
+      <section class="grow-pets-screen" id="grow-pets-screen" hidden>
+        <button id="grow-pets-back" class="secondary blank-back-button" type="button">Back</button>
+        <button id="grow-pets-count" class="grow-pets-count" type="button">0/10</button>
+        <p id="grow-pets-message" class="grow-pets-message">Collect 10 Pet Seeds to grow a new pet.</p>
+      </section>
+
+      <section class="friend-battle-screen" id="friend-battle-screen" hidden>
+        <button id="friend-battle-back" class="secondary blank-back-button" type="button">Back</button>
+        <div class="friend-battle-panel">
+          <div class="friend-list" id="friend-list"></div>
+          <div class="friend-code-panel">
+            <strong id="friend-code">CODE 0000</strong>
+            <input id="friend-code-input" type="text" maxlength="12" placeholder="Code" />
+            <p id="friend-battle-message" class="friend-battle-message">Enter a friend's code.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="shop-screen" id="shop-screen" hidden>
+        <button id="shop-back" class="secondary blank-back-button" type="button">Back</button>
+        <div class="market-panel">
+          <header class="market-header">
+            <div>
+              <p>WizBits Market</p>
+              <h2>Mascot Shop</h2>
+            </div>
+            <strong id="shop-balance">Wiz Bucks 0</strong>
+          </header>
+          <div class="market-feature">
+            <span>New</span>
+            <div class="market-mascot-preview">
+              <div class="market-mascot-face"></div>
+            </div>
+            <div>
+              <h3>New Mascot Character</h3>
+              <p>Unlock a new buddy for your home screen.</p>
+            </div>
+          </div>
+          <div class="market-grid" id="shop-mascot-grid">
+            <article class="market-card">
+              <div class="market-card-art dragon"></div>
+              <h3>Crystal Dragon</h3>
+              <p>200 Wiz Bucks</p>
+              <button class="buy-mascot-button" type="button" data-mascot="crystal-dragon">Buy</button>
+            </article>
+            <article class="market-card">
+              <div class="market-card-art panda"></div>
+              <h3>Leaf Panda</h3>
+              <p>200 Wiz Bucks</p>
+              <button class="buy-mascot-button" type="button" data-mascot="leaf-panda">Buy</button>
+            </article>
+            <article class="market-card">
+              <div class="market-card-art moon"></div>
+              <h3>Moon Bunny</h3>
+              <p>200 Wiz Bucks</p>
+              <button class="buy-mascot-button" type="button" data-mascot="moon-bunny">Buy</button>
+            </article>
+            <article class="market-card">
+              <div class="market-card-art sun"></div>
+              <h3>Sun Lion</h3>
+              <p>200 Wiz Bucks</p>
+              <button class="buy-mascot-button" type="button" data-mascot="sun-lion">Buy</button>
+            </article>
+            <article class="market-card">
+              <div class="market-card-art koala"></div>
+              <h3>Sky Koala</h3>
+              <p>200 Wiz Bucks</p>
+              <button class="buy-mascot-button" type="button" data-mascot="sky-koala">Buy</button>
+            </article>
+          </div>
+          <p class="market-empty" id="shop-empty-message" hidden>All bought mascots are in your Backpack.</p>
+          <section class="battle-pets-section">
+            <div class="battle-shop-header">
+              <div>
+                <p>Power up your team</p>
+                <h3>Battle Pets</h3>
+              </div>
+              <strong>New Pets</strong>
+            </div>
+            <div class="market-grid" id="shop-pet-grid">
+              <article class="market-card">
+                <div class="market-card-art fire-pet"></div>
+                <h3>Kindle Lion</h3>
+                <p>Fire • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="kindle-lion">Buy</button>
+              </article>
+              <article class="market-card">
+                <div class="market-card-art fire-pet"></div>
+                <h3>Blaze Tiger</h3>
+                <p>Fire • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="blaze-tiger">Buy</button>
+              </article>
+              <article class="market-card">
+                <div class="market-card-art fire-pet"></div>
+                <h3>Ember Fox</h3>
+                <p>Fire • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="ember-fox">Buy</button>
+              </article>
+              <article class="market-card">
+                <div class="market-card-art fire-pet"></div>
+                <h3>Scorch Hog</h3>
+                <p>Fire • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="scorch-hog">Buy</button>
+              </article>
+              <article class="market-card">
+                <div class="market-card-art water-pet"></div>
+                <h3>Aqua Penguin</h3>
+                <p>Water • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="aqua-penguin">Buy</button>
+              </article>
+              <article class="market-card">
+                <div class="market-card-art electric-pet"></div>
+                <h3>Spark Bee</h3>
+                <p>Electric • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="spark-bee">Buy</button>
+              </article>
+              <article class="market-card">
+                <div class="market-card-art electric-pet"></div>
+                <h3>Bolt Monkey</h3>
+                <p>Electric • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="bolt-monkey">Buy</button>
+              </article>
+              <article class="market-card">
+                <div class="market-card-art grass-pet"></div>
+                <h3>Leaf Deer</h3>
+                <p>Grass • 150 Wiz Bucks</p>
+                <button class="buy-battle-pet-button" type="button" data-pet="leaf-deer">Buy</button>
+              </article>
+            </div>
+            <p class="market-empty" id="shop-pet-empty-message" hidden>All bought pets are ready for battle.</p>
+          </section>
+          <section class="battle-shop-section">
+            <div class="battle-shop-header">
+              <div>
+                <p>Power boost</p>
+                <h3>Battle Shop</h3>
+              </div>
+              <strong>Battle Points</strong>
+            </div>
+            <article class="market-card battle-shop-card">
+              <div class="market-card-art electric-pet"></div>
+              <h3>Pet XP Pack</h3>
+              <p>Give every pet you own 1000 XP.</p>
+              <p>Cost: 150 Battle Points</p>
+              <button id="buy-pet-xp-pack-button" type="button">Buy 1000 XP</button>
+              <p id="battle-shop-message" class="battle-shop-message">Earn Battle Points in matchmaking.</p>
+            </article>
+            <article class="market-card battle-shop-card">
+              <div class="market-card-art grass-pet"></div>
+              <h3>Pet Seeds Pack</h3>
+              <p>Add 10 Pet Seeds for growing new pets.</p>
+              <p>Cost: 150 Battle Points</p>
+              <button id="buy-pet-seeds-pack-button" type="button">Buy 10 Pet Seeds</button>
+              <p id="pet-seeds-shop-message" class="battle-shop-message">Use seeds on the Grow Pets page.</p>
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <section class="backpack-screen" id="backpack-screen" hidden>
+        <button id="backpack-back" class="secondary blank-back-button" type="button">Back</button>
+        <div class="market-panel backpack-panel">
+          <header class="market-header">
+            <div>
+              <p>Your Collection</p>
+              <h2>Backpack</h2>
+            </div>
+            <strong>Mascots</strong>
+          </header>
+          <div class="market-grid">
+            <article class="market-card" id="classic-mascot-card">
+              <div class="market-card-art bunny"></div>
+              <h3>Classic Mascot</h3>
+              <p>Owned</p>
+              <button id="backpack-classic-button" type="button">Equip</button>
+            </article>
+            <article class="market-card" id="crystal-dragon-mascot-card">
+              <div class="market-card-art dragon"></div>
+              <h3>Crystal Dragon</h3>
+              <p id="crystal-dragon-owned-label">Locked</p>
+              <button class="backpack-mascot-button" type="button" data-mascot="crystal-dragon">Equip</button>
+            </article>
+            <article class="market-card" id="leaf-panda-mascot-card">
+              <div class="market-card-art panda"></div>
+              <h3>Leaf Panda</h3>
+              <p id="leaf-panda-owned-label">Locked</p>
+              <button class="backpack-mascot-button" type="button" data-mascot="leaf-panda">Equip</button>
+            </article>
+            <article class="market-card" id="moon-bunny-mascot-card">
+              <div class="market-card-art moon"></div>
+              <h3>Moon Bunny</h3>
+              <p id="moon-bunny-owned-label">Locked</p>
+              <button class="backpack-mascot-button" type="button" data-mascot="moon-bunny">Equip</button>
+            </article>
+            <article class="market-card" id="sun-lion-mascot-card">
+              <div class="market-card-art sun"></div>
+              <h3>Sun Lion</h3>
+              <p id="sun-lion-owned-label">Locked</p>
+              <button class="backpack-mascot-button" type="button" data-mascot="sun-lion">Equip</button>
+            </article>
+            <article class="market-card" id="sky-koala-mascot-card">
+              <div class="market-card-art koala"></div>
+              <h3>Sky Koala</h3>
+              <p id="sky-koala-owned-label">Locked</p>
+              <button class="backpack-mascot-button" type="button" data-mascot="sky-koala">Equip</button>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="my-pets-screen" id="my-pets-screen" hidden>
+        <button id="my-pets-back" class="secondary blank-back-button" type="button">Back</button>
+        <div class="market-panel my-pets-panel">
+          <header class="market-header">
+            <div>
+              <p>Your Team</p>
+              <h2>My Pets</h2>
+            </div>
+            <strong>Battle Team</strong>
+          </header>
+          <div class="my-pets-layout">
+            <section class="my-pets-column">
+              <h3>My Team</h3>
+              <div class="pet-list" id="my-team-grid"></div>
+            </section>
+            <section class="my-pets-column">
+              <h3>Pets I Have</h3>
+              <div class="pet-list" id="owned-pets-grid"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="leaderboard-screen" id="leaderboard-screen" hidden>
+        <button id="leaderboard-back" class="secondary blank-back-button" type="button">Back</button>
+        <div class="market-panel leaderboard-panel">
+          <header class="market-header">
+            <div>
+              <p>Rankings</p>
+              <h2>Leaderboard</h2>
+            </div>
+            <strong>Top Players</strong>
+          </header>
+          <div class="leaderboard-list" id="leaderboard-list"></div>
+        </div>
+      </section>
+
+      <section class="quiz-screen" id="quiz-screen" hidden>
+        <button id="quiz-back" class="secondary blank-back-button" type="button">Back</button>
+        <div class="market-panel quiz-panel">
+          <header class="market-header">
+            <div>
+              <p>Practice</p>
+              <h2>Quiz Mode</h2>
+            </div>
+            <strong id="quiz-score">Score 0/0</strong>
+          </header>
+          <div id="quiz-diagram" class="math-diagram" hidden></div>
+          <strong id="quiz-question" class="quiz-question">Question</strong>
+          <div id="quiz-answers" class="math-answers"></div>
+          <p id="quiz-message" class="quiz-message">Pick an answer.</p>
+        </div>
+      </section>
+
+      <section class="mode-screen" id="mode-screen" hidden>
+        <div class="mode-content">
+          <p class="eyebrow">Play</p>
+          <h2>Choose Mode</h2>
+          <div class="mode-actions">
+            <button id="mode-one-player" type="button">1 Player</button>
+            <button id="mode-two-player" type="button">2 Players</button>
+          </div>
+          <button id="mode-back" class="secondary" type="button">Back</button>
+        </div>
+      </section>
+
+      <section class="events-screen" id="events-screen" hidden>
+        <div class="events-content">
+          <p class="eyebrow">Events</p>
+          <h2>Choose Level</h2>
+          <div class="level-list">
+            <button id="event-level-1" type="button">Level 1</button>
+            <button id="event-level-2" type="button">Level 2</button>
+            <button id="event-level-3" type="button">Level 3 Boss</button>
+            <button id="event-level-4" type="button">Level 4</button>
+            <button id="event-level-5" type="button">Level 5 Final Boss</button>
+          </div>
+          <button id="events-back" class="secondary" type="button">Back</button>
+        </div>
+      </section>
+
+      <section class="hud" id="hud" aria-live="polite" hidden>
+        <div class="top-bar">
+          <div>
+            <p class="eyebrow">WizBits</p>
+            <h1>Team Pet Battle</h1>
+          </div>
+          <div class="wallet">
+            <span id="xp-label">XP 0</span>
+            <span id="coins-label">Wiz Bucks 0</span>
+            <span id="battle-points-label">Battle Points 0</span>
+          </div>
+        </div>
+
+        <div class="arena-ui">
+          <div class="team-side left" id="player-team" aria-label="Player 1 team"></div>
+          <section class="board-panel" id="board-panel">
+            <div class="turn-sign">
+              <span id="turn-label">Your turn</span>
+              <strong id="message">Match 3 elements to attack.</strong>
+            </div>
+            <div class="element-board" id="element-board" aria-label="Element match board"></div>
+          </section>
+          <div class="team-side right" id="rival-team" aria-label="Player 2 team"></div>
+        </div>
+
+        <div class="bottom-actions">
+          <div class="reward-panel" id="reward-panel" hidden>
+            <span>Rewards</span>
+            <strong id="reward-summary">XP 0 • Wiz Bucks 0</strong>
+            <button id="reward-back-button" class="secondary" type="button">Back</button>
+          </div>
+          <div class="math-panel" id="math-panel" hidden>
+            <div id="math-diagram" class="math-diagram" hidden></div>
+            <strong id="math-question">2 + 2 = ?</strong>
+            <div class="math-answers" id="math-answers"></div>
+          </div>
+          <div class="actions">
+            <button id="one-player-button" type="button">1 Player</button>
+            <button id="two-player-button" type="button">2 Players</button>
+            <button id="retry-button" type="button" hidden>Retry</button>
+            <button id="battle-back-button" class="secondary" type="button" hidden>Back</button>
+            <button id="reset-button" class="secondary" type="button">Reset Save</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.165.0/build/three.module.js"
+        }
+      }
+    </script>
+    <script>
+      window.addEventListener("click", (event) => {
+        if (event.target.closest("#quiz-mode-button")) window.openQuizMode?.();
+        if (event.target.closest("#matchmaking-button")) window.startMatchmakingBattle?.();
+      });
+    </script>
+    <script type="module" src="main.js?v=sky-koala-1"></script>
+  </body>
+</html>

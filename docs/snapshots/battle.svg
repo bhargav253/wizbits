@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="WizBits pet battle snapshot">
+  <rect width="960" height="540" fill="#e9f7ff"/>
+  <rect x="30" y="24" width="230" height="70" rx="10" fill="#ffffff" stroke="#ccd8e5"/>
+  <text x="52" y="54" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#223044">Team Pet Battle</text>
+  <rect x="700" y="24" width="230" height="70" rx="10" fill="#fff7d6" stroke="#ccd8e5"/>
+  <text x="724" y="54" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#223044">Battle Points</text>
+  <g transform="translate(56 138)">
+    <circle cx="55" cy="50" r="34" fill="#f65b32"/><rect x="10" y="96" width="92" height="10" rx="5" fill="#39a96b"/>
+    <circle cx="55" cy="160" r="34" fill="#2d9eea"/><rect x="10" y="206" width="92" height="10" rx="5" fill="#39a96b"/>
+  </g>
+  <g transform="translate(782 138)">
+    <circle cx="55" cy="50" r="34" fill="#55b947"/><rect x="10" y="96" width="92" height="10" rx="5" fill="#39a96b"/>
+    <circle cx="55" cy="160" r="34" fill="#f1c232"/><rect x="10" y="206" width="92" height="10" rx="5" fill="#39a96b"/>
+  </g>
+  <rect x="305" y="115" width="350" height="350" rx="14" fill="#ffffff" stroke="#223044" stroke-width="4"/>
+  <text x="480" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#223044">Connect matching tiles</text>
+  <g transform="translate(345 180)">
+    <script type="application/ecmascript"><![CDATA[]]></script>
+    <rect width="42" height="42" rx="8" fill="#f65b32"/><rect x="52" width="42" height="42" rx="8" fill="#2d9eea"/><rect x="104" width="42" height="42" rx="8" fill="#f1c232"/><rect x="156" width="42" height="42" rx="8" fill="#55b947"/><rect x="208" width="42" height="42" rx="8" fill="#f65b32"/>
+    <rect y="52" width="42" height="42" rx="8" fill="#f65b32"/><rect x="52" y="52" width="42" height="42" rx="8" fill="#f65b32"/><rect x="104" y="52" width="42" height="42" rx="8" fill="#2d9eea"/><rect x="156" y="52" width="42" height="42" rx="8" fill="#55b947"/><rect x="208" y="52" width="42" height="42" rx="8" fill="#f1c232"/>
+    <rect y="104" width="42" height="42" rx="8" fill="#2d9eea"/><rect x="52" y="104" width="42" height="42" rx="8" fill="#55b947"/><rect x="104" y="104" width="42" height="42" rx="8" fill="#f65b32"/><rect x="156" y="104" width="42" height="42" rx="8" fill="#f65b32"/><rect x="208" y="104" width="42" height="42" rx="8" fill="#f65b32"/>
+  </g>
+  <text x="480" y="510" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="#223044">Pet Battle</text>
+</svg>

@@ -1,0 +1,6 @@
+.agents/
+.codex/
+.git.empty-placeholder/
+.env
+node_modules/
+plan/

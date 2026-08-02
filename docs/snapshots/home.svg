@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" role="img" aria-label="WizBits home screen snapshot">
+  <rect width="960" height="540" fill="#8bd3ff"/>
+  <rect x="28" y="28" width="176" height="84" rx="12" fill="#fff7d6" stroke="#223044" stroke-width="4"/>
+  <text x="116" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#223044">Mystic Kitty</text>
+  <text x="224" y="78" font-family="Arial, sans-serif" font-size="44" font-weight="900" fill="#e83535">MATH</text>
+  <circle cx="480" cy="250" r="96" fill="#fff7d6" stroke="#223044" stroke-width="8"/>
+  <circle cx="445" cy="232" r="10" fill="#223044"/>
+  <circle cx="515" cy="232" r="10" fill="#223044"/>
+  <rect x="360" y="368" width="240" height="78" rx="39" fill="#e83535" stroke="#ffffff" stroke-width="6"/>
+  <polygon points="466,390 466,424 504,407" fill="#ffffff"/>
+  <rect x="30" y="320" width="230" height="172" rx="10" fill="#ffffff" opacity="0.95"/>
+  <text x="52" y="356" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#223044">Player</text>
+  <rect x="52" y="376" width="82" height="30" rx="6" fill="#e83535"/>
+  <rect x="146" y="376" width="82" height="30" rx="6" fill="#55b947"/>
+  <rect x="52" y="418" width="176" height="30" rx="6" fill="#3578e5"/>
+  <text x="480" y="508" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="900" fill="#223044">Home Screen</text>
+</svg>
