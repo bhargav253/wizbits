@@ -824,6 +824,7 @@ function setupThreeScene() {
   try {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9fe5ff);
+    scene.fog = new THREE.Fog(0x9fe5ff, 10, 22);
 
     camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 5.2, 8.6);
@@ -832,6 +833,11 @@ function setupThreeScene() {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     clock = new THREE.Clock();
     world = createWorld();
@@ -848,10 +854,21 @@ function setupThreeScene() {
 
 function createWorld() {
   const group = new THREE.Group();
-  const sun = new THREE.DirectionalLight(0xffffff, 2.6);
+  const sun = new THREE.DirectionalLight(0xfff4d6, 3.1);
   sun.position.set(4, 7, 5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -7;
+  sun.shadow.camera.right = 7;
+  sun.shadow.camera.top = 7;
+  sun.shadow.camera.bottom = -7;
+  sun.shadow.bias = -0.0008;
   group.add(sun);
-  group.add(new THREE.AmbientLight(0xffffff, 1.25));
+  group.add(new THREE.HemisphereLight(0xdff6ff, 0x4c7a42, 1.55));
+
+  const rim = new THREE.DirectionalLight(0x7dd8ff, 1.1);
+  rim.position.set(-5, 4, -5);
+  group.add(rim);
 
   const ground = new THREE.Mesh(
     new THREE.CylinderGeometry(5.6, 6.2, 0.25, 64),
@@ -859,13 +876,62 @@ function createWorld() {
   );
   ground.position.y = -0.18;
   ground.scale.z = 0.78;
+  ground.receiveShadow = true;
   group.add(ground);
+
+  group.add(createArenaDecor());
 
   slotRockGroup = new THREE.Group();
   group.add(slotRockGroup);
   updateSlotRocks();
 
   return group;
+}
+
+function createArenaDecor() {
+  const decor = new THREE.Group();
+  const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x7b4f2b, roughness: 0.92 });
+  const leafMaterials = [0x4abf68, 0x69d47a, 0x38a95a].map(
+    (color) => new THREE.MeshStandardMaterial({ color, roughness: 0.82 }),
+  );
+  const treePositions = [
+    [-5.2, -2.4, 0.85],
+    [-5.35, 1.9, 1.05],
+    [5.2, -2.2, 0.95],
+    [5.35, 2.0, 0.8],
+  ];
+
+  for (const [x, z, scale] of treePositions) {
+    const tree = new THREE.Group();
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 1.1, 10), trunkMaterial);
+    trunk.position.y = 0.45;
+    trunk.castShadow = true;
+    const crown = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.62, 1),
+      leafMaterials[Math.abs(Math.round(x + z)) % leafMaterials.length],
+    );
+    crown.position.y = 1.18;
+    crown.castShadow = true;
+    tree.add(trunk, crown);
+    tree.position.set(x, 0, z);
+    tree.scale.setScalar(scale);
+    decor.add(tree);
+  }
+
+  const crystalMaterial = new THREE.MeshStandardMaterial({
+    color: 0x8c6cff,
+    emissive: 0x392277,
+    emissiveIntensity: 0.35,
+    roughness: 0.3,
+  });
+  for (const [x, z] of [[-4.8, 0], [4.8, 0.25]]) {
+    const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), crystalMaterial);
+    crystal.position.set(x, 0.25, z);
+    crystal.rotation.z = 0.18;
+    crystal.castShadow = true;
+    decor.add(crystal);
+  }
+  return decor;
 }
 
 function createPlayerTeam() {
@@ -1110,6 +1176,10 @@ function loadPetModel(pet, holder, token, scale) {
       model.position.set(0, 0, 0);
       model.traverse((child) => {
         child.userData.petHolder = holder;
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
       });
       holder.add(model);
 
@@ -1191,6 +1261,10 @@ function createPetMesh(pet) {
   addAnimalDetails(fallback, pet.kind, earMat, accentMat);
   fallback.traverse((child) => {
     child.userData.petHolder = group;
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
   });
   group.add(fallback);
   addHealthBar(group);
@@ -1494,6 +1568,7 @@ function startMathChallenge() {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = answer;
+    button.dataset.answer = String(answer);
     button.addEventListener("click", () => answerMathQuestion(answer));
     mathAnswersEl.append(button);
   }
@@ -1513,19 +1588,21 @@ async function answerMathQuestion(answer) {
   if (!state.mathChallenge || state.animating) return;
 
   clearMathTimer();
-  const correct = answer === state.mathChallenge.correctAnswer;
+  const completedQuestion = state.mathChallenge;
+  const correct = answer === completedQuestion.correctAnswer;
+  showAnswerFeedback(mathAnswersEl, completedQuestion.correctAnswer, answer);
   state.pendingMathRetry[state.activeSide] = !correct;
   state.mathChallenge = null;
-  mathPanel.hidden = true;
   state.animating = true;
   turnLabel.textContent = `${activePlayerName()} math check`;
   messageEl.textContent = correct
-    ? "Correct. Your next turn can attack again."
+    ? `Correct! ${completedQuestion.explanation}`
     : answer === null
-      ? "Time ran out. Your turn is over."
-      : "Not quite. Your turn is over.";
+      ? `Time ran out. ${completedQuestion.explanation}`
+      : `Not quite. ${completedQuestion.explanation}`;
 
-  await wait(450);
+  await wait(900);
+  mathPanel.hidden = true;
   if (state.gameMode === "one" && state.activeSide === "player") {
     await resolveAiTurn();
     state.animating = false;
@@ -2232,8 +2309,17 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function makeMathQuestion() {
-  const makers = [
+function makeMathQuestion(difficulty = "mixed") {
+  const foundationMakers = [
+    makeAdditionQuestion,
+    makeSubtractionQuestion,
+    makeMultiplicationQuestion,
+    makeDivisionQuestion,
+    makeMissingNumberQuestion,
+    makePatternStory,
+    makeMoneyStory,
+  ];
+  const reasoningMakers = [
     makeGardenAreaStory,
     makeFencePerimeterStory,
     makeTileArrayStory,
@@ -2241,9 +2327,20 @@ function makeMathQuestion() {
     makeFractionSnackStory,
     makeVolumeCrateStory,
     makeElapsedTimeStory,
-    makePatternStory,
+    makeBalancedQuestion,
+    makeOrderQuestion,
+    makeFactorQuestion,
+    makeMeasurementStory,
+    makeTwoStepRewardStory,
   ];
-  return makers[randomInt(0, makers.length - 1)]();
+  const makers = difficulty === "foundation"
+    ? foundationMakers
+    : difficulty === "reasoning"
+      ? reasoningMakers
+      : [...foundationMakers, ...reasoningMakers];
+  const question = makers[randomInt(0, makers.length - 1)]();
+  question.level = difficulty;
+  return question;
 }
 
 function makeGardenAreaStory() {
@@ -2254,6 +2351,7 @@ function makeGardenAreaStory() {
     length * width,
     10,
     { type: "rectangle", top: `${length} ft`, side: `${width} ft` },
+    `Area is length × width: ${length} × ${width} = ${length * width}.`,
   );
 }
 
@@ -2265,6 +2363,7 @@ function makeFencePerimeterStory() {
     2 * (length + width),
     10,
     { type: "rectangle", top: `${length} ft`, side: `${width} ft` },
+    `Perimeter is ${length} + ${width} + ${length} + ${width} = ${2 * (length + width)}.`,
   );
 }
 
@@ -2277,6 +2376,7 @@ function makeTileArrayStory() {
     rows * columns - broken,
     10,
     { type: "array", rows, columns },
+    `${rows} × ${columns} = ${rows * columns}, then ${rows * columns} − ${broken} = ${rows * columns - broken}.`,
   );
 }
 
@@ -2334,6 +2434,49 @@ function makePatternStory() {
     `A magic path shows this pattern: ${start}, ${start + step}, ${start + step * 2}, __. What number comes next?`,
     fourth,
     8,
+    null,
+    `The pattern adds ${step} each time, so the next number is ${fourth}.`,
+  );
+}
+
+function makeMoneyStory() {
+  const price = randomInt(2, 8) * 5;
+  const quantity = randomInt(2, 5);
+  const paid = Math.ceil((price * quantity + 10) / 10) * 10;
+  const answer = paid - price * quantity;
+  return makeQuestionFromAnswer(
+    `A pet badge costs ${price} Wiz Bucks. Cinder buys ${quantity} and pays ${paid} Wiz Bucks. How much change should Cinder receive?`,
+    answer,
+    12,
+    null,
+    `${quantity} badges cost ${price * quantity}; ${paid} − ${price * quantity} = ${answer}.`,
+  );
+}
+
+function makeMeasurementStory() {
+  const feet = randomInt(2, 8);
+  const extraInches = [0, 3, 6, 9][randomInt(0, 3)];
+  const answer = feet * 12 + extraInches;
+  return makeQuestionFromAnswer(
+    `A training ribbon is ${feet} feet and ${extraInches} inches long. How many inches long is it altogether?`,
+    answer,
+    18,
+    null,
+    `Each foot is 12 inches: ${feet} × 12 + ${extraInches} = ${answer}.`,
+  );
+}
+
+function makeTwoStepRewardStory() {
+  const rounds = randomInt(3, 6);
+  const pointsPerRound = randomInt(4, 9);
+  const bonus = randomInt(5, 18);
+  const answer = rounds * pointsPerRound + bonus;
+  return makeQuestionFromAnswer(
+    `Volt earns ${pointsPerRound} points in each of ${rounds} rounds, then earns a ${bonus}-point bonus. How many points does Volt earn altogether?`,
+    answer,
+    16,
+    null,
+    `${rounds} × ${pointsPerRound} = ${rounds * pointsPerRound}; add ${bonus} to get ${answer}.`,
   );
 }
 
@@ -2398,6 +2541,7 @@ function makeFactorQuestion() {
   return {
     text: `Which number is a multiple of ${factor}?`,
     correctAnswer,
+    explanation: `${correctAnswer} is ${factor} × ${correctAnswer / factor}, so it is a multiple of ${factor}.`,
     answers: shuffle([...answers]),
   };
 }
@@ -2410,9 +2554,23 @@ function makeFractionQuestion() {
   return makeQuestionFromAnswer(`${numerator}/${denominator} of ${whole} = ?`, answer, 12);
 }
 
-function makeQuestionFromAnswer(text, correctAnswer, spread, diagram = null) {
+function makeQuestionFromAnswer(text, correctAnswer, spread, diagram = null, explanation = null) {
   const answers = new Set([correctAnswer]);
-
+  const offsets = shuffle([
+    -spread,
+    spread,
+    -Math.max(1, Math.round(spread / 2)),
+    Math.max(1, Math.round(spread / 2)),
+    -1,
+    1,
+    -10,
+    10,
+  ]);
+  for (const offset of offsets) {
+    const option = correctAnswer + offset;
+    if (option >= 0) answers.add(option);
+    if (answers.size === 4) break;
+  }
   while (answers.size < 4) {
     const option = correctAnswer + randomInt(-spread, spread);
     if (option >= 0) answers.add(option);
@@ -2422,6 +2580,7 @@ function makeQuestionFromAnswer(text, correctAnswer, spread, diagram = null) {
     text,
     correctAnswer,
     diagram,
+    explanation: explanation || `The correct answer is ${correctAnswer}.`,
     answers: shuffle([...answers]),
   };
 }
@@ -2709,9 +2868,17 @@ window.openQuizMode = showQuizMode;
 
 function nextQuizQuestion() {
   clearQuizTimer();
-  state.quizQuestion = makeMathQuestion();
+  const accuracy = state.quizTotal === 0 ? 0.5 : state.quizCorrect / state.quizTotal;
+  const difficulty = state.quizTotal < 3 || accuracy < 0.55
+    ? "foundation"
+    : accuracy > 0.78
+      ? "reasoning"
+      : "mixed";
+  state.quizQuestion = makeMathQuestion(difficulty);
   state.quizTimeLeft = 20;
-  quizMessage.textContent = "Pick an answer.";
+  quizMessage.textContent = difficulty === "reasoning"
+    ? "Reasoning round • Take it one step at a time."
+    : "Pick the best answer.";
   updateQuizHeader();
   quizQuestion.textContent = state.quizQuestion.text;
   renderQuestionDiagram(quizDiagram, state.quizQuestion.diagram);
@@ -2721,6 +2888,7 @@ function nextQuizQuestion() {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = answer;
+    button.dataset.answer = String(answer);
     button.addEventListener("click", () => answerQuizQuestion(answer));
     quizAnswers.append(button);
   }
@@ -2734,19 +2902,27 @@ function nextQuizQuestion() {
 function answerQuizQuestion(answer) {
   if (!state.quizQuestion) return;
   clearQuizTimer();
-  const correct = answer === state.quizQuestion.correctAnswer;
+  const completedQuestion = state.quizQuestion;
+  const correct = answer === completedQuestion.correctAnswer;
   state.quizTotal += 1;
   if (correct) state.quizCorrect += 1;
   updateQuizHeader();
   quizMessage.textContent = answer === null
-    ? `Time's up. The answer was ${state.quizQuestion.correctAnswer}.`
+    ? `Time's up. ${completedQuestion.explanation}`
     : correct
-      ? "Correct! Next question..."
-      : `Not quite. The answer was ${state.quizQuestion.correctAnswer}.`;
-  for (const button of quizAnswers.querySelectorAll("button")) {
+      ? `Correct! ${completedQuestion.explanation}`
+      : `Good try. ${completedQuestion.explanation}`;
+  showAnswerFeedback(quizAnswers, completedQuestion.correctAnswer, answer);
+  window.setTimeout(nextQuizQuestion, 1800);
+}
+
+function showAnswerFeedback(container, correctAnswer, selectedAnswer) {
+  for (const button of container.querySelectorAll("button")) {
     button.disabled = true;
+    const value = Number(button.dataset.answer);
+    if (value === correctAnswer) button.classList.add("answer-correct");
+    else if (value === selectedAnswer) button.classList.add("answer-wrong");
   }
-  window.setTimeout(nextQuizQuestion, 1000);
 }
 
 function updateQuizHeader() {

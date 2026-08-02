@@ -8,7 +8,12 @@
   --panel: rgba(255, 255, 255, 0.92);
   --line: rgba(35, 48, 68, 0.14);
   --blue: #3578e5;
+  --blue-dark: #2255a8;
   --pink: #ff6392;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-soft: 0 18px 48px rgba(28, 48, 78, 0.16);
 }
 
 * {
@@ -27,7 +32,7 @@ body {
 button {
   min-height: 44px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0 18px;
   color: #ffffff;
   background: var(--blue);
@@ -35,6 +40,18 @@ button {
   font-weight: 900;
   cursor: pointer;
   box-shadow: 0 8px 0 #2255a8;
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.06) saturate(1.05);
+}
+
+button:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 4px solid #ffe071;
+  outline-offset: 3px;
 }
 
 button:active {
@@ -75,8 +92,9 @@ button.secondary {
   z-index: 4;
   padding: 24px;
   background:
-    linear-gradient(rgba(159, 229, 255, 0.84), rgba(159, 229, 255, 0.92)),
-    radial-gradient(circle at 50% 58%, rgba(111, 209, 109, 0.56), transparent 38%);
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.8), transparent 19%),
+    radial-gradient(circle at 80% 12%, rgba(255, 224, 113, 0.42), transparent 16%),
+    linear-gradient(180deg, #87dcff 0 58%, #74d377 58% 100%);
 }
 
 .load-screen {
@@ -92,6 +110,9 @@ button.secondary {
   padding: 24px;
   padding-top: 80px;
   pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255, 255, 255, 0.5), transparent 32%),
+    linear-gradient(180deg, rgba(90, 199, 244, 0.92), rgba(92, 185, 111, 0.9));
 }
 
 .login-screen[hidden],
@@ -105,9 +126,10 @@ button.secondary {
   width: min(390px, 100%);
   padding: 24px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 18px 40px rgba(35, 48, 68, 0.18);
+  box-shadow: 0 24px 70px rgba(22, 50, 78, 0.28);
+  backdrop-filter: blur(18px);
   pointer-events: auto;
 }
 
@@ -123,11 +145,18 @@ button.secondary {
 .login-content input {
   min-height: 48px;
   border: 2px solid rgba(35, 48, 68, 0.18);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 0 12px;
   color: var(--ink);
   font: inherit;
   font-weight: 800;
+  background: rgba(248, 251, 255, 0.96);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.login-content input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(53, 120, 229, 0.14);
 }
 
 .login-content button + button {
@@ -249,7 +278,7 @@ button.secondary {
   gap: 6px 10px;
   max-width: min(310px, calc(100% - 48px));
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 10px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 12px 28px rgba(35, 48, 68, 0.16);
@@ -1456,7 +1485,7 @@ h1 {
 .turn-sign,
 .pet-badge {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--panel);
   box-shadow: 0 18px 40px rgba(35, 48, 68, 0.14);
   backdrop-filter: blur(12px);
@@ -1500,6 +1529,7 @@ h1 {
   align-content: start;
   min-height: 56px;
   padding: 8px;
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
 }
 
 .pet-badge::after {
@@ -1601,6 +1631,11 @@ h1 {
   cursor: pointer;
 }
 
+.pet-badge.targetable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px rgba(35, 48, 68, 0.22);
+}
+
 .pet-badge.targeted {
   outline: 3px solid #ff9f1c;
 }
@@ -1635,6 +1670,7 @@ h1 {
   width: min(100%, 380px);
   padding: 10px 14px;
   text-align: center;
+  box-shadow: var(--shadow-soft);
 }
 
 #turn-label {
@@ -1660,10 +1696,12 @@ h1 {
   max-width: 100%;
   aspect-ratio: 1;
   border: 8px solid #8f5a31;
-  border-radius: 8px;
+  border-radius: 20px;
   padding: 8px;
   background: #6f421f;
-  box-shadow: 0 20px 42px rgba(35, 48, 68, 0.24);
+  box-shadow:
+    0 24px 54px rgba(35, 48, 68, 0.3),
+    inset 0 0 0 3px rgba(255, 220, 144, 0.28);
   touch-action: none;
   user-select: none;
 }
@@ -1672,7 +1710,7 @@ h1 {
   display: grid;
   place-items: center;
   border: 2px solid rgba(255, 255, 255, 0.25);
-  border-radius: 8px;
+  border-radius: 12px;
   color: #ffffff;
   font-size: clamp(1.35rem, 4vh, 2.2rem);
   text-shadow: 0 3px rgba(0, 0, 0, 0.2);
@@ -1682,6 +1720,12 @@ h1 {
   box-shadow:
     inset 0 -7px rgba(0, 0, 0, 0.16),
     0 0 0 rgba(255, 231, 112, 0);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+.element-tile:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
 }
 
 .element-tile.selected {
@@ -1735,7 +1779,7 @@ h1 {
   gap: 10px;
   width: min(640px, 100%);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 12px;
   background: var(--panel);
   box-shadow: 0 18px 40px rgba(35, 48, 68, 0.14);
@@ -1925,9 +1969,39 @@ h1 {
   box-shadow: 0 7px 0 #257245;
 }
 
+.math-answers button.answer-correct,
+.quiz-answers button.answer-correct {
+  background: #2fbd70;
+  box-shadow: 0 7px 0 #177443;
+  opacity: 1;
+  animation: answerPulse 420ms ease;
+}
+
+.math-answers button.answer-wrong,
+.quiz-answers button.answer-wrong {
+  background: #e64c57;
+  box-shadow: 0 7px 0 #962a35;
+  opacity: 1;
+}
+
+@keyframes answerPulse {
+  50% { transform: scale(1.08); }
+}
+
 @keyframes pop {
   50% {
     transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
