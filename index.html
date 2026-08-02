@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WizBits</title>
-    <link rel="stylesheet" href="style.css?v=polish-1" />
+    <link rel="stylesheet" href="style.css?v=visual-math-1" />
   </head>
   <body>
     <main id="app">
@@ -445,6 +445,10 @@
             <button id="reward-back-button" class="secondary" type="button">Back</button>
           </div>
           <div class="math-panel" id="math-panel" hidden>
+            <div class="math-panel-header">
+              <span id="math-topic">Visual math challenge</span>
+              <strong id="math-timer" aria-live="polite">10s</strong>
+            </div>
             <div id="math-diagram" class="math-diagram" hidden></div>
             <strong id="math-question">2 + 2 = ?</strong>
             <div class="math-answers" id="math-answers"></div>
@@ -473,6 +477,6 @@
         if (event.target.closest("#matchmaking-button")) window.startMatchmakingBattle?.();
       });
     </script>
-    <script type="module" src="main.js?v=polish-1"></script>
+    <script type="module" src="main.js?v=visual-math-1"></script>
   </body>
 </html>

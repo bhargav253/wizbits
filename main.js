@@ -252,6 +252,8 @@ const boardEl = document.querySelector("#element-board");
 const mathPanel = document.querySelector("#math-panel");
 const mathDiagram = document.querySelector("#math-diagram");
 const mathQuestionEl = document.querySelector("#math-question");
+const mathTopicEl = document.querySelector("#math-topic");
+const mathTimerEl = document.querySelector("#math-timer");
 const mathAnswersEl = document.querySelector("#math-answers");
 const rewardPanel = document.querySelector("#reward-panel");
 const rewardSummary = document.querySelector("#reward-summary");
@@ -1555,7 +1557,7 @@ async function resolveChain() {
 
 function startMathChallenge() {
   clearMathTimer();
-  state.mathChallenge = makeMathQuestion();
+  state.mathChallenge = makeMathQuestion("visual");
   state.mathTimeLeft = 10;
   turnLabel.textContent = `${activePlayerName()} math check`;
   messageEl.textContent = "Answer this math question. You cannot attack this turn.";
@@ -1616,7 +1618,21 @@ async function answerMathQuestion(answer) {
 
 function updateMathQuestionText() {
   if (!state.mathChallenge) return;
-  mathQuestionEl.textContent = `${state.mathChallenge.text}  (${state.mathTimeLeft}s)`;
+  renderQuestionPrompt(mathQuestionEl, state.mathChallenge.text);
+  mathTopicEl.textContent = state.mathChallenge.topic || "Visual math challenge";
+  mathTimerEl.textContent = `${state.mathTimeLeft}s`;
+  mathTimerEl.classList.toggle("urgent", state.mathTimeLeft <= 4);
+}
+
+function renderQuestionPrompt(container, text) {
+  const sentences = text.match(/[^.!?]+[.!?]?/g)?.map((part) => part.trim()).filter(Boolean) || [text];
+  container.replaceChildren();
+  for (const sentence of sentences) {
+    const line = document.createElement("span");
+    line.className = "question-line";
+    line.textContent = sentence;
+    container.append(line);
+  }
 }
 
 function renderMathDiagram() {
@@ -1682,6 +1698,107 @@ function renderQuestionDiagram(container, diagram) {
       fraction.append(piece);
     }
     container.append(fraction);
+    return;
+  }
+
+  if (diagram.type === "sequence") {
+    const sequence = document.createElement("div");
+    sequence.className = "diagram-sequence";
+    for (const value of diagram.values) {
+      const step = document.createElement("span");
+      step.textContent = value;
+      sequence.append(step);
+    }
+    container.append(sequence);
+    return;
+  }
+
+  if (diagram.type === "timeline") {
+    const timeline = document.createElement("div");
+    timeline.className = "diagram-timeline";
+    for (const [index, value] of diagram.parts.entries()) {
+      const part = document.createElement("span");
+      part.textContent = value;
+      if (index === diagram.parts.length - 1) part.className = "unknown";
+      timeline.append(part);
+    }
+    container.append(timeline);
+    return;
+  }
+
+  if (diagram.type === "money") {
+    const money = document.createElement("div");
+    money.className = "diagram-money";
+    const items = document.createElement("div");
+    items.className = "money-items";
+    for (let i = 0; i < diagram.quantity; i += 1) {
+      const badge = document.createElement("span");
+      badge.textContent = `${diagram.price}`;
+      badge.title = `${diagram.price} Wiz Bucks`;
+      items.append(badge);
+    }
+    const paid = document.createElement("strong");
+    paid.textContent = `Paid ${diagram.paid}`;
+    money.append(items, paid);
+    container.append(money);
+    return;
+  }
+
+  if (diagram.type === "ruler") {
+    const ruler = document.createElement("div");
+    ruler.className = "diagram-ruler";
+    ruler.setAttribute("aria-label", `${diagram.feet} feet and ${diagram.extraInches} inches`);
+    for (let i = 0; i <= 12; i += 1) ruler.append(document.createElement("span"));
+    const label = document.createElement("strong");
+    label.textContent = `${diagram.feet} ft + ${diagram.extraInches} in`;
+    ruler.append(label);
+    container.append(ruler);
+    return;
+  }
+
+  if (diagram.type === "groups") {
+    const groups = document.createElement("div");
+    groups.className = "diagram-groups";
+    for (let i = 0; i < diagram.groups; i += 1) {
+      const group = document.createElement("span");
+      group.textContent = diagram.perGroup;
+      group.title = `${diagram.perGroup} in this group`;
+      groups.append(group);
+    }
+    if (diagram.bonus) {
+      const bonus = document.createElement("strong");
+      bonus.textContent = `+ ${diagram.bonus} bonus`;
+      groups.append(bonus);
+    }
+    container.append(groups);
+    return;
+  }
+
+  if (diagram.type === "sharing") {
+    const sharing = document.createElement("div");
+    sharing.className = "diagram-sharing";
+    const total = document.createElement("strong");
+    total.textContent = `${diagram.total} gems`;
+    const arrow = document.createElement("span");
+    arrow.textContent = "share equally →";
+    const pets = document.createElement("div");
+    for (let i = 0; i < diagram.groups; i += 1) pets.append(document.createElement("span"));
+    sharing.append(total, arrow, pets);
+    container.append(sharing);
+    return;
+  }
+
+  if (diagram.type === "bar-model") {
+    const model = document.createElement("div");
+    model.className = "diagram-bar-model";
+    const unknown = document.createElement("span");
+    unknown.textContent = "?";
+    const known = document.createElement("span");
+    known.textContent = diagram.known;
+    const total = document.createElement("strong");
+    total.textContent = `Total ${diagram.total}`;
+    model.append(unknown, known, total);
+    container.append(model);
     return;
   }
 
@@ -2333,12 +2450,41 @@ function makeMathQuestion(difficulty = "mixed") {
     makeMeasurementStory,
     makeTwoStepRewardStory,
   ];
+  const visualMakers = [
+    makeGardenAreaStory,
+    makeFencePerimeterStory,
+    makeTileArrayStory,
+    makeAngleStory,
+    makeFractionSnackStory,
+    makeVolumeCrateStory,
+    makeElapsedTimeStory,
+    makePatternStory,
+    makeMoneyStory,
+    makeMeasurementStory,
+    makeTwoStepRewardStory,
+    makeMultiplicationQuestion,
+    makeDivisionQuestion,
+    makeMissingNumberQuestion,
+  ];
   const makers = difficulty === "foundation"
     ? foundationMakers
     : difficulty === "reasoning"
       ? reasoningMakers
-      : [...foundationMakers, ...reasoningMakers];
-  const question = makers[randomInt(0, makers.length - 1)]();
+      : difficulty === "visual"
+        ? visualMakers
+        : [...foundationMakers, ...reasoningMakers];
+  const maker = makers[randomInt(0, makers.length - 1)];
+  const question = maker();
+  const topics = new Map([
+    [makeGardenAreaStory, "Area model"], [makeFencePerimeterStory, "Perimeter model"],
+    [makeTileArrayStory, "Array reasoning"], [makeAngleStory, "Angle reasoning"],
+    [makeFractionSnackStory, "Fractions"], [makeVolumeCrateStory, "Volume"],
+    [makeElapsedTimeStory, "Elapsed time"], [makePatternStory, "Number pattern"],
+    [makeMoneyStory, "Money math"], [makeMeasurementStory, "Measurement"],
+    [makeTwoStepRewardStory, "Two-step problem"], [makeMultiplicationQuestion, "Equal groups"],
+    [makeDivisionQuestion, "Sharing equally"], [makeMissingNumberQuestion, "Missing number"],
+  ]);
+  question.topic = topics.get(maker) || "Math challenge";
   question.level = difficulty;
   return question;
 }
@@ -2423,6 +2569,8 @@ function makeElapsedTimeStory() {
     `The pets have ${total} minutes before the boss gate closes. They train for ${training} minutes and solve puzzles for ${puzzle} minutes. How many minutes are left?`,
     left,
     10,
+    { type: "timeline", parts: [`Train ${training}m`, `Puzzle ${puzzle}m`, "Time left ?"] },
+    `${training} + ${puzzle} = ${training + puzzle}; ${total} − ${training + puzzle} = ${left}.`,
   );
 }
 
@@ -2434,7 +2582,7 @@ function makePatternStory() {
     `A magic path shows this pattern: ${start}, ${start + step}, ${start + step * 2}, __. What number comes next?`,
     fourth,
     8,
-    null,
+    { type: "sequence", values: [start, start + step, start + step * 2, "?"] },
     `The pattern adds ${step} each time, so the next number is ${fourth}.`,
   );
 }
@@ -2448,7 +2596,7 @@ function makeMoneyStory() {
     `A pet badge costs ${price} Wiz Bucks. Cinder buys ${quantity} and pays ${paid} Wiz Bucks. How much change should Cinder receive?`,
     answer,
     12,
-    null,
+    { type: "money", price, quantity, paid },
     `${quantity} badges cost ${price * quantity}; ${paid} − ${price * quantity} = ${answer}.`,
   );
 }
@@ -2461,7 +2609,7 @@ function makeMeasurementStory() {
     `A training ribbon is ${feet} feet and ${extraInches} inches long. How many inches long is it altogether?`,
     answer,
     18,
-    null,
+    { type: "ruler", feet, extraInches },
     `Each foot is 12 inches: ${feet} × 12 + ${extraInches} = ${answer}.`,
   );
 }
@@ -2475,7 +2623,7 @@ function makeTwoStepRewardStory() {
     `Volt earns ${pointsPerRound} points in each of ${rounds} rounds, then earns a ${bonus}-point bonus. How many points does Volt earn altogether?`,
     answer,
     16,
-    null,
+    { type: "groups", groups: rounds, perGroup: pointsPerRound, bonus },
     `${rounds} × ${pointsPerRound} = ${rounds * pointsPerRound}; add ${bonus} to get ${answer}.`,
   );
 }
@@ -2496,21 +2644,39 @@ function makeSubtractionQuestion() {
 function makeMultiplicationQuestion() {
   const left = randomInt(2, 12);
   const right = randomInt(2, 12);
-  return makeQuestionFromAnswer(`${left} x ${right} = ?`, left * right, 12);
+  return makeQuestionFromAnswer(
+    `${left} groups of ${right} make how many altogether?`,
+    left * right,
+    12,
+    { type: "groups", groups: left, perGroup: right },
+    `${left} × ${right} = ${left * right}.`,
+  );
 }
 
 function makeDivisionQuestion() {
   const answer = randomInt(2, 12);
   const divisor = randomInt(2, 12);
   const dividend = answer * divisor;
-  return makeQuestionFromAnswer(`${dividend} ÷ ${divisor} = ?`, answer, 6);
+  return makeQuestionFromAnswer(
+    `${dividend} gems are shared equally among ${divisor} pets. How many gems does each pet get?`,
+    answer,
+    6,
+    { type: "sharing", total: dividend, groups: divisor },
+    `${dividend} ÷ ${divisor} = ${answer}.`,
+  );
 }
 
 function makeMissingNumberQuestion() {
   const hidden = randomInt(20, 99);
   const add = randomInt(20, 99);
   const total = hidden + add;
-  return makeQuestionFromAnswer(`□ + ${add} = ${total}`, hidden, 10);
+  return makeQuestionFromAnswer(
+    `A mystery number plus ${add} equals ${total}. What is the mystery number?`,
+    hidden,
+    10,
+    { type: "bar-model", known: add, total },
+    `${total} − ${add} = ${hidden}.`,
+  );
 }
 
 function makeBalancedQuestion() {
@@ -2880,7 +3046,7 @@ function nextQuizQuestion() {
     ? "Reasoning round • Take it one step at a time."
     : "Pick the best answer.";
   updateQuizHeader();
-  quizQuestion.textContent = state.quizQuestion.text;
+  renderQuestionPrompt(quizQuestion, state.quizQuestion.text);
   renderQuestionDiagram(quizDiagram, state.quizQuestion.diagram);
   quizAnswers.replaceChildren();
 
