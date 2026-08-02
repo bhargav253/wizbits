@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WizBits</title>
-    <link rel="stylesheet" href="style.css?v=visual-math-1" />
+    <link rel="stylesheet" href="style.css?v=math-overlay-1" />
   </head>
   <body>
     <main id="app">
@@ -444,7 +444,7 @@
             <strong id="reward-summary">XP 0 • Wiz Bucks 0</strong>
             <button id="reward-back-button" class="secondary" type="button">Back</button>
           </div>
-          <div class="math-panel" id="math-panel" hidden>
+          <div class="math-panel" id="math-panel" role="dialog" aria-modal="true" aria-labelledby="math-question" hidden>
             <div class="math-panel-header">
               <span id="math-topic">Visual math challenge</span>
               <strong id="math-timer" aria-live="polite">10s</strong>

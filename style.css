@@ -1775,15 +1775,26 @@ h1 {
 }
 
 .math-panel {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 80;
   display: grid;
   gap: 10px;
-  width: min(760px, 100%);
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 18px;
   background: var(--panel);
-  box-shadow: 0 18px 40px rgba(35, 48, 68, 0.14);
+  box-shadow:
+    0 28px 80px rgba(18, 32, 52, 0.38),
+    0 0 0 100vmax rgba(16, 34, 54, 0.58);
+  transform: translate(-50%, -50%);
+  overscroll-behavior: contain;
   text-align: center;
+  pointer-events: auto;
 }
 
 .math-panel-header {
@@ -2263,6 +2274,28 @@ h1 {
 
   .element-board {
     width: min(92vw, 430px);
+  }
+}
+
+@media (max-width: 620px), (max-height: 720px) {
+  .math-panel {
+    gap: 8px;
+    width: min(680px, calc(100vw - 20px));
+    max-height: calc(100dvh - 20px);
+    padding: 12px;
+  }
+
+  .math-diagram {
+    min-height: 88px;
+    padding: 8px;
+  }
+
+  .math-answers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .math-answers button {
+    min-height: 46px;
   }
 }
 
