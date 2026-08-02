@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "node server/src/app.js",
-    "dev": "NODE_ENV=development node server/src/app.js"
+    "dev": "NODE_ENV=development node server/src/app.js",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "db:schema": "node server/scripts/apply-schema.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

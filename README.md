@@ -16,7 +16,7 @@ These snapshots show the main flows in the game.
 
 ## Features
 
-- Player login with local save data
+- Player registration and password login with PostgreSQL save data
 - Home screen with mascot, shop, backpack, My Pets, Grow Pets, and Battle a Friend
 - Adventure mode with locked progression across zones
 - Challenges and events battle modes
@@ -34,31 +34,48 @@ These snapshots show the main flows in the game.
 - Grow Pets flow using Pet Seeds
 - Battle Shop purchases using Battle Points
 
-## How To Run
+## How To Run With Login And Cloud Saves
 
-From the project folder:
+WizBits uses PostgreSQL locally so development and Neon run the same SQL. Install Docker Engine
+with the Compose plugin, then from the project folder run:
 
 ```bash
-python3 -m http.server 5174
+npm install
+cp .env.example .env
+npm run db:up
+npm run db:schema
+npm start
 ```
 
 Then open:
 
 ```text
-http://127.0.0.1:5174/
+http://127.0.0.1:3000/
 ```
 
-Use a local server instead of opening `index.html` directly, because the game uses JavaScript modules and browser storage.
+The local database is exposed only on `127.0.0.1:5433`. Its files live in the Docker volume
+`wizbits-postgres` and survive container restarts.
 
-For the Linode/Neon backend scaffold:
+Useful database commands:
 
 ```bash
-npm install
-cp .env.example .env
-npm start
+npm run db:up       # start local PostgreSQL
+npm run db:schema   # create or update tables
+npm run db:down     # stop PostgreSQL without deleting its data
 ```
 
-Before using the backend against Neon, run [server/db/schema.sql](/media/poseidon/HDD2/projects/wizbits/server/db/schema.sql) in the database.
+To use Neon, replace `DATABASE_URL` in `.env`, run `npm run db:schema`, and restart the server.
+Use a direct Neon connection for `db:schema` and the pooled connection for the running application.
+
+## How Login Works
+
+- A player creates an account with a unique player name and a password of at least 8 characters.
+- The server hashes the password with bcrypt; the original password is never stored.
+- After login, the browser receives an HTTP-only session cookie that JavaScript cannot read.
+- Sessions and profiles live in PostgreSQL, so an account works on another browser or device.
+- Progress is cached locally and sent to the server after a short debounce.
+- Sessions last up to 14 days. Logging out clears the browser's session.
+- Existing browser progress is imported when an account is created with the same player name.
 
 ## How To Play
 
@@ -91,6 +108,6 @@ plan/            Local planning notes and rough reference material, ignored by G
 
 ## Notes
 
-The game currently saves progress in `localStorage`, so progress is per browser and device.
+The browser keeps a local cache, but authenticated progress is saved in PostgreSQL.
 
 The `plan/` folder is ignored by Git. Production assets used by the game should live under `assets/` so they are available after cloning and deployment.

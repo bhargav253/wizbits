@@ -16,6 +16,7 @@ create table if not exists wizbits.profiles (
   xp integer not null default 0,
   wiz_bucks integer not null default 80,
   battle_points integer not null default 0,
+  daily_battle_points jsonb not null default '{}',
   pet_seeds integer not null default 0,
   hearts integer not null default 3,
   owned_mascots jsonb not null default '["classic"]',
@@ -23,9 +24,13 @@ create table if not exists wizbits.profiles (
   owned_pets jsonb not null default '[]',
   active_pet_by_element jsonb not null default '{}',
   pet_stats jsonb not null default '{}',
+  type_levels jsonb not null default '{"fire":1,"water":1,"electric":1,"grass":1}',
   adventure_progress jsonb not null default '{}',
   updated_at timestamptz not null default now()
 );
+
+alter table wizbits.profiles add column if not exists daily_battle_points jsonb not null default '{}';
+alter table wizbits.profiles add column if not exists type_levels jsonb not null default '{"fire":1,"water":1,"electric":1,"grass":1}';
 
 create table if not exists wizbits.friendships (
   id uuid primary key default gen_random_uuid(),

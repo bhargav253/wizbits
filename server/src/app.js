@@ -21,8 +21,18 @@ const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "127.0.0.1";
 const avatars = ["Fox", "Bunny", "Tiger", "Panda", "Penguin", "Bee", "Deer", "Parrot"];
 
+if (process.env.NODE_ENV === "production" && !process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET is required in production");
+}
+
 const app = express();
 const PgSession = connectPgSimple(session);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
 
 app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -63,6 +73,23 @@ function requireLogin(req, res, next) {
   next();
 }
 
+function validCredentials(username, password) {
+  return username.length >= 3 && username.length <= 18 && password.length >= 8 && password.length <= 72;
+}
+
+function establishSession(req, userId) {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      req.session.userId = userId;
+      resolve();
+    });
+  });
+}
+
 function randomAvatar() {
   return avatars[Math.floor(Math.random() * avatars.length)];
 }
@@ -83,22 +110,43 @@ async function createUniqueFriendCode() {
 async function currentUser(userId) {
   const result = await query(
     `select u.id, u.username, u.friend_code, u.avatar, p.xp, p.wiz_bucks, p.battle_points,
-            p.pet_seeds, p.hearts, p.owned_mascots, p.equipped_mascot, p.owned_pets,
-            p.active_pet_by_element, p.pet_stats, p.adventure_progress
+            p.daily_battle_points, p.pet_seeds, p.hearts, p.owned_mascots, p.equipped_mascot,
+            p.owned_pets, p.active_pet_by_element, p.pet_stats, p.type_levels,
+            p.adventure_progress
        from wizbits.users u
        join wizbits.profiles p on p.user_id = u.id
       where u.id = $1`,
     [userId],
   );
-  return result.rows[0] || null;
+  const row = result.rows[0];
+  if (!row) return null;
+  return {
+    id: row.id,
+    username: row.username,
+    friendCode: row.friend_code,
+    avatar: row.avatar,
+    xp: row.xp,
+    coins: row.wiz_bucks,
+    leaderboardPoints: row.battle_points,
+    dailyBattlePoints: row.daily_battle_points,
+    petSeeds: row.pet_seeds,
+    hearts: row.hearts,
+    ownedMascots: row.owned_mascots,
+    equippedMascot: row.equipped_mascot,
+    ownedBattlePets: row.owned_pets,
+    activePetByElement: row.active_pet_by_element,
+    petStats: row.pet_stats,
+    typeLevels: row.type_levels,
+    adventureProgress: row.adventure_progress,
+  };
 }
 
-app.post("/api/register", async (req, res, next) => {
+app.post("/api/register", authLimiter, async (req, res, next) => {
   try {
     const username = String(req.body.username || "").trim();
     const password = String(req.body.password || "");
 
-    if (username.length < 3 || password.length < 8) {
+    if (!validCredentials(username, password)) {
       res.status(400).json({ error: "invalid_username_or_password" });
       return;
     }
@@ -115,7 +163,7 @@ app.post("/api/register", async (req, res, next) => {
     );
 
     await query("insert into wizbits.profiles (user_id) values ($1)", [created.rows[0].id]);
-    req.session.userId = created.rows[0].id;
+    await establishSession(req, created.rows[0].id);
 
     res.status(201).json({ user: await currentUser(req.session.userId) });
   } catch (error) {
@@ -127,10 +175,14 @@ app.post("/api/register", async (req, res, next) => {
   }
 });
 
-app.post("/api/login", async (req, res, next) => {
+app.post("/api/login", authLimiter, async (req, res, next) => {
   try {
     const username = String(req.body.username || "").trim();
     const password = String(req.body.password || "");
+    if (!validCredentials(username, password)) {
+      res.status(401).json({ error: "invalid_login" });
+      return;
+    }
     const result = await query("select id, password_hash from wizbits.users where username = $1", [
       username,
     ]);
@@ -141,7 +193,7 @@ app.post("/api/login", async (req, res, next) => {
       return;
     }
 
-    req.session.userId = user.id;
+    await establishSession(req, user.id);
     res.json({ user: await currentUser(user.id) });
   } catch (error) {
     next(error);
@@ -177,34 +229,40 @@ app.get("/api/profile", requireLogin, async (req, res, next) => {
 app.put("/api/profile", requireLogin, async (req, res, next) => {
   try {
     const profile = req.body.profile || {};
+    const integer = (value, minimum = 0, maximum = 1_000_000) =>
+      Number.isInteger(value) ? Math.min(maximum, Math.max(minimum, value)) : null;
     await query(
       `update wizbits.profiles
           set xp = coalesce($2, xp),
               wiz_bucks = coalesce($3, wiz_bucks),
               battle_points = coalesce($4, battle_points),
-              pet_seeds = coalesce($5, pet_seeds),
-              hearts = coalesce($6, hearts),
-              owned_mascots = coalesce($7::jsonb, owned_mascots),
-              equipped_mascot = coalesce($8, equipped_mascot),
-              owned_pets = coalesce($9::jsonb, owned_pets),
-              active_pet_by_element = coalesce($10::jsonb, active_pet_by_element),
-              pet_stats = coalesce($11::jsonb, pet_stats),
-              adventure_progress = coalesce($12::jsonb, adventure_progress),
+              daily_battle_points = coalesce($5::jsonb, daily_battle_points),
+              pet_seeds = coalesce($6, pet_seeds),
+              hearts = coalesce($7, hearts),
+              owned_mascots = coalesce($8::jsonb, owned_mascots),
+              equipped_mascot = coalesce($9, equipped_mascot),
+              owned_pets = coalesce($10::jsonb, owned_pets),
+              active_pet_by_element = coalesce($11::jsonb, active_pet_by_element),
+              pet_stats = coalesce($12::jsonb, pet_stats),
+              type_levels = coalesce($13::jsonb, type_levels),
+              adventure_progress = coalesce($14::jsonb, adventure_progress),
               updated_at = now()
         where user_id = $1`,
       [
         req.session.userId,
-        profile.xp,
-        profile.wiz_bucks,
-        profile.battle_points,
-        profile.pet_seeds,
-        profile.hearts,
-        profile.owned_mascots ? JSON.stringify(profile.owned_mascots) : null,
-        profile.equipped_mascot,
-        profile.owned_pets ? JSON.stringify(profile.owned_pets) : null,
-        profile.active_pet_by_element ? JSON.stringify(profile.active_pet_by_element) : null,
-        profile.pet_stats ? JSON.stringify(profile.pet_stats) : null,
-        profile.adventure_progress ? JSON.stringify(profile.adventure_progress) : null,
+        integer(profile.xp),
+        integer(profile.coins),
+        integer(profile.leaderboardPoints),
+        profile.dailyBattlePoints ? JSON.stringify(profile.dailyBattlePoints) : null,
+        integer(profile.petSeeds),
+        integer(profile.hearts, 0, 3),
+        profile.ownedMascots ? JSON.stringify(profile.ownedMascots) : null,
+        typeof profile.equippedMascot === "string" ? profile.equippedMascot : null,
+        profile.ownedBattlePets ? JSON.stringify(profile.ownedBattlePets) : null,
+        profile.activePetByElement ? JSON.stringify(profile.activePetByElement) : null,
+        profile.petStats ? JSON.stringify(profile.petStats) : null,
+        profile.typeLevels ? JSON.stringify(profile.typeLevels) : null,
+        profile.adventureProgress ? JSON.stringify(profile.adventureProgress) : null,
       ],
     );
     res.json({ profile: await currentUser(req.session.userId) });

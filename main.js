@@ -137,7 +137,10 @@ const MODEL_ROOT = "assets/pets/kenney-cube";
 const canvas = document.querySelector("#game-canvas");
 const loginScreen = document.querySelector("#login-screen");
 const playerNameInput = document.querySelector("#player-name");
+const playerPasswordInput = document.querySelector("#player-password");
 const loginButton = document.querySelector("#login-button");
+const loginModeButton = document.querySelector("#login-mode-button");
+const loginTitle = document.querySelector("#login-title");
 const loginMessage = document.querySelector("#login-message");
 const xpLabel = document.querySelector("#xp-label");
 const coinsLabel = document.querySelector("#coins-label");
@@ -152,6 +155,7 @@ const homeGrowPetsButton = document.querySelector("#home-grow-pets-button");
 const homeBattleFriendButton = document.querySelector("#home-battle-friend-button");
 const shopButton = document.querySelector("#shop-button");
 const buyHeartButton = document.querySelector("#buy-heart-button");
+const logoutButton = document.querySelector("#logout-button");
 const playerTeamEl = document.querySelector("#player-team");
 const rivalTeamEl = document.querySelector("#rival-team");
 const loadScreen = document.querySelector("#load-screen");
@@ -339,6 +343,9 @@ const gltfLoader = new GLTFLoader();
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 
+let authMode = "login";
+let saveTimer;
+
 loadSave();
 resetTeams();
 fillBoard();
@@ -346,10 +353,14 @@ renderHud();
 renderBoard();
 setupThreeScene();
 
-loginButton.addEventListener("click", () => loginPlayer());
-playerNameInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") loginPlayer();
-});
+loginButton.addEventListener("click", loginPlayer);
+loginModeButton.addEventListener("click", toggleAuthMode);
+for (const input of [playerNameInput, playerPasswordInput]) {
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") loginPlayer();
+  });
+}
+logoutButton.addEventListener("click", logoutPlayer);
 buyHeartButton.addEventListener("click", () => showHeartShop());
 backpackButton.addEventListener("click", () => {
   if (!requireLogin()) return;
@@ -2454,36 +2465,59 @@ function effectivenessText(multiplier) {
   return "";
 }
 
-function loadSave() {
-  const users = readUsers();
-  if (resetSavedBattlePointsOnce(users)) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(body.error || "request_failed");
+    error.status = response.status;
+    throw error;
   }
-  if (ensureFriendCodes(users)) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  }
-  const currentUser = localStorage.getItem(CURRENT_USER_KEY);
-  if (currentUser && users[currentUser]) {
-    applyProfile(users[currentUser]);
-    showLoadScreen();
-    return;
-  }
+  return body;
+}
 
-  const oldSave = safeParse(localStorage.getItem(SAVE_KEY), null);
-  if (oldSave) {
-    playerNameInput.value = "Player";
-    loginMessage.textContent = "Type a name to move your old save into a profile.";
+async function loadSave() {
+  try {
+    const { user } = await api("/api/me");
+    applyProfile(user);
+    cacheProfile(user);
+    resetTeams();
+    showLoadScreen();
+  } catch (error) {
+    if (error.status !== 401) {
+      loginMessage.textContent = "The game server is unavailable. Try again in a moment.";
+    }
+    renderProfileBadge();
   }
-  renderProfileBadge();
 }
 
 function saveGame() {
   if (!state.currentUser) return;
-  const users = readUsers();
-  users[state.currentUser] = profileFromState();
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  localStorage.setItem(CURRENT_USER_KEY, state.currentUser);
+  const profile = profileFromState();
+  cacheProfile(profile);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await api("/api/profile", {
+        method: "PUT",
+        body: JSON.stringify({ profile }),
+      });
+    } catch (error) {
+      console.error("Could not save game progress", error);
+    }
+  }, 500);
   renderProfileBadge();
+}
+
+function cacheProfile(profile) {
+  const users = readUsers();
+  users[profile.username] = profile;
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  localStorage.setItem(CURRENT_USER_KEY, profile.username);
 }
 
 function resetSave() {
@@ -2497,37 +2531,71 @@ function resetSave() {
   messageEl.textContent = "Save reset. Your pets are ready for a fresh start.";
 }
 
-function loginPlayer() {
-  const username = normalizeUsername(playerNameInput.value) || "Player";
-  playerNameInput.value = username;
-
-  const users = readUsers();
-  resetSavedBattlePointsOnce(users);
-  ensureFriendCodes(users);
-  const oldSave = safeParse(localStorage.getItem(SAVE_KEY), null);
-  if (!users[username]) {
-    users[username] = createDefaultProfile(username);
-    if (oldSave) {
-      users[username].xp = Number.isFinite(oldSave.xp) ? oldSave.xp : users[username].xp;
-      users[username].coins = Number.isFinite(oldSave.coins) ? oldSave.coins : users[username].coins;
-      if (oldSave.adventureProgress?.forestComplete) {
-        users[username].adventureProgress.forest.completed = true;
-        users[username].adventureProgress.forest.completedLevels[22] = true;
-        users[username].adventureProgress["number-beach"].unlocked = true;
-      }
-    }
+async function loginPlayer() {
+  const username = normalizeUsername(playerNameInput.value);
+  const password = playerPasswordInput.value;
+  if (username.length < 3 || password.length < 8) {
+    loginMessage.textContent = "Use at least 3 characters for the name and 8 for the password.";
+    return;
   }
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  localStorage.setItem(CURRENT_USER_KEY, username);
-  applyProfile(users[username]);
-  showLoadScreen();
-  saveGame();
+
+  loginButton.disabled = true;
+  loginMessage.textContent = authMode === "register" ? "Creating account..." : "Logging in...";
+  try {
+    const localProfile = readUsers()[username];
+    const { user } = await api(`/api/${authMode}`, {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    const profile = authMode === "register" && localProfile
+      ? {
+          ...localProfile,
+          username: user.username,
+          avatar: user.avatar,
+          friendCode: user.friendCode,
+          friends: [],
+        }
+      : user;
+    applyProfile(profile);
+    resetTeams();
+    showLoadScreen();
+    saveGame();
+    playerPasswordInput.value = "";
+  } catch (error) {
+    const messages = {
+      invalid_login: "That player name or password is not correct.",
+      username_taken: "That player name is already taken. Try logging in instead.",
+      invalid_username_or_password: "Use at least 3 characters for the name and 8 for the password.",
+    };
+    loginMessage.textContent = messages[error.message] || "Could not log in. Try again.";
+  } finally {
+    loginButton.disabled = false;
+  }
+}
+
+function toggleAuthMode() {
+  authMode = authMode === "login" ? "register" : "login";
+  const registering = authMode === "register";
+  loginTitle.textContent = registering ? "Create Account" : "Log In";
+  loginButton.textContent = registering ? "Create Account" : "Log In";
+  loginModeButton.textContent = registering ? "I already have an account" : "Create an account";
+  playerPasswordInput.autocomplete = registering ? "new-password" : "current-password";
+  loginMessage.textContent = registering
+    ? "Choose a player name and a password with at least 8 characters."
+    : "Your progress is saved to your account.";
+}
+
+async function logoutPlayer() {
+  clearTimeout(saveTimer);
+  await api("/api/logout", { method: "POST", body: "{}" }).catch(() => {});
+  localStorage.removeItem(CURRENT_USER_KEY);
+  window.location.reload();
 }
 
 function requireLogin() {
   if (state.currentUser) return true;
   loginScreen.hidden = false;
-  loginMessage.textContent = "Pick a player name to start.";
+  loginMessage.textContent = "Log in to continue.";
   playerNameInput.focus();
   return false;
 }

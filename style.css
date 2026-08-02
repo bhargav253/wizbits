@@ -130,6 +130,10 @@ button.secondary {
   font-weight: 800;
 }
 
+.login-content button + button {
+  margin-top: 0.65rem;
+}
+
 .login-message {
   color: var(--muted);
   font-weight: 800;
