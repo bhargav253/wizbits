@@ -24,6 +24,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   color: var(--ink);
   background: #9fe5ff;
@@ -74,6 +75,7 @@ button.secondary {
   position: relative;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
 }
 
 #game-canvas {
@@ -2296,6 +2298,259 @@ h1 {
 
   .math-answers button {
     min-height: 46px;
+  }
+}
+
+/* Phone layout: keep every control reachable above Safari's dynamic bars. */
+@media (max-width: 720px), (max-height: 520px) {
+  html,
+  body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-width: 0;
+  }
+
+  #app {
+    width: 100%;
+    min-height: 100dvh;
+    height: auto;
+  }
+
+  .login-screen,
+  .load-screen,
+  .challenge-screen,
+  .mode-screen,
+  .events-screen,
+  .blank-screen,
+  .heart-shop-screen,
+  .shop-screen,
+  .backpack-screen,
+  .my-pets-screen,
+  .grow-pets-screen,
+  .friend-battle-screen,
+  .leaderboard-screen,
+  .quiz-screen {
+    position: fixed;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  .login-screen {
+    place-items: start center;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .login-content {
+    gap: 9px;
+    padding: 18px;
+  }
+
+  .login-content h1 {
+    font-size: 1.9rem;
+  }
+
+  .login-content input {
+    /* 16px prevents iOS Safari from zooming when an input receives focus. */
+    font-size: 16px;
+  }
+
+  .load-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(20px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .kitty-sticker,
+  .math-label,
+  .load-mascot {
+    display: none;
+  }
+
+  .load-content,
+  .profile-badge,
+  .load-secondary-actions,
+  .play-button {
+    position: static;
+  }
+
+  .load-content {
+    order: -1;
+    justify-items: center;
+    width: 100%;
+    margin: 0;
+    text-align: center;
+  }
+
+  .load-copy {
+    margin-top: 6px;
+  }
+
+  .home-mode-actions,
+  .load-secondary-actions {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .profile-badge {
+    left: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: 58px minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .profile-badge span:first-child {
+    grid-row: span 4;
+  }
+
+  .profile-badge button {
+    padding-inline: 8px;
+  }
+
+  .play-button {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 82px;
+    height: 82px;
+    min-height: 82px;
+    font-size: 2.25rem;
+  }
+
+  .blank-screen {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 14px;
+    padding:
+      max(76px, calc(env(safe-area-inset-top) + 64px))
+      max(14px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .blank-screen > button:not(.blank-back-button) {
+    position: static !important;
+    min-width: 0;
+    min-height: 54px;
+    padding: 8px 10px;
+    transform: none !important;
+    font-size: 0.92rem;
+  }
+
+  .adventure-options,
+  .forest-levels {
+    position: static;
+    grid-column: 1 / -1;
+    width: 100%;
+    transform: none;
+  }
+
+  .adventure-options {
+    grid-template-columns: 1fr;
+  }
+
+  .forest-levels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .blank-back-button {
+    left: max(14px, env(safe-area-inset-left));
+    top: max(14px, env(safe-area-inset-top));
+    z-index: 30;
+  }
+
+  .market-panel,
+  .friend-battle-panel {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: calc(100% - 24px);
+    max-height: none;
+    margin: max(76px, calc(env(safe-area-inset-top) + 64px)) auto max(20px, env(safe-area-inset-bottom));
+    transform: none;
+  }
+
+  .friend-battle-panel,
+  .my-pets-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .market-header,
+  .battle-shop-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .market-header h2 {
+    font-size: 1.9rem;
+  }
+
+  .market-feature,
+  .market-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .challenge-screen,
+  .mode-screen,
+  .events-screen {
+    align-items: start;
+    padding:
+      max(24px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(24px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
+
+  .challenge-actions,
+  .mode-actions,
+  .level-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .hud {
+    min-height: 100dvh;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      max(16px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+  }
+
+  .global-battle-points {
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+  }
+
+  .team-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .math-panel {
+    width: calc(100vw - 16px);
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
+    padding: 10px;
+  }
+
+  .math-diagram {
+    min-height: 76px;
   }
 }
 
