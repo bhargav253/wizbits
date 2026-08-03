@@ -2502,8 +2502,12 @@ h1 {
   }
 
   .market-feature,
-  .market-grid {
+  .market-feature {
     grid-template-columns: 1fr;
+  }
+
+  .market-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 
   .challenge-screen,
@@ -2540,7 +2544,71 @@ h1 {
   }
 
   .team-side {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .arena-ui {
+    gap: 10px;
+  }
+
+  .board-panel {
+    order: -1;
+  }
+
+  .element-board {
+    width: min(82vw, 330px);
+    border-width: 6px;
+    padding: 5px;
+  }
+
+  .pet-badge {
+    min-height: 48px;
+    padding: 6px;
+  }
+
+  .pet-badge::after,
+  .pet-meta {
+    display: none;
+  }
+
+  .pet-head {
+    gap: 3px;
+    font-size: 0.7rem;
+  }
+
+  .element-chip {
+    width: 24px;
+    height: 24px;
+    font-size: 0.85rem;
+  }
+
+  .mini-hp {
+    gap: 2px;
+    margin-top: 5px;
+  }
+
+  .mini-hp .heart {
+    width: 11px;
+    height: 11px;
+  }
+
+  .top-bar {
+    gap: 8px;
+  }
+
+  .top-bar h1 {
+    font-size: 1.35rem;
+  }
+
+  .wallet {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .wallet span {
+    padding: 5px 6px;
+    font-size: 0.72rem;
   }
 
   .math-panel {
@@ -2551,6 +2619,145 @@ h1 {
 
   .math-diagram {
     min-height: 76px;
+  }
+}
+
+/* A short phone in landscape needs a side-by-side home and denser menus. */
+@media (max-height: 520px) and (min-width: 721px) {
+  .login-screen {
+    padding-block: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-bottom));
+  }
+
+  .login-content {
+    gap: 5px;
+    width: min(390px, 100%);
+    padding: 12px 18px;
+  }
+
+  .login-content h1 {
+    font-size: 1.6rem;
+  }
+
+  .login-content input {
+    min-height: 40px;
+  }
+
+  .login-content button {
+    min-height: 38px;
+  }
+
+  .login-content button + button {
+    margin-top: 2px;
+  }
+
+  .login-message {
+    font-size: 0.78rem;
+  }
+
+  .load-screen {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(300px, 1.1fr);
+    grid-template-areas:
+      "content profile"
+      "secondary profile";
+    align-content: center;
+    align-items: center;
+    column-gap: 18px;
+    row-gap: 8px;
+  }
+
+  .load-content {
+    grid-area: content;
+  }
+
+  .home-mode-actions {
+    flex-wrap: nowrap;
+  }
+
+  .home-mode-actions button,
+  .load-secondary-actions button {
+    flex: 1 1 0;
+    padding-inline: 8px;
+  }
+
+  .load-copy {
+    display: none;
+  }
+
+  .profile-badge {
+    grid-area: profile;
+  }
+
+  .load-secondary-actions {
+    grid-area: secondary;
+  }
+
+  .play-button {
+    display: none;
+  }
+
+  .blank-screen {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .market-panel {
+    margin-top: max(66px, calc(env(safe-area-inset-top) + 54px));
+  }
+
+  .market-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+
+  .market-feature {
+    grid-template-columns: auto 100px 1fr;
+    text-align: left;
+  }
+
+  .market-mascot-preview {
+    width: 92px;
+    height: 92px;
+  }
+
+  .hud {
+    padding-block: 8px;
+  }
+
+  .top-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .arena-ui {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .board-panel {
+    order: 0;
+  }
+
+  .element-board {
+    width: min(50vh, 240px);
+    grid-template-rows: repeat(6, minmax(0, 1fr));
+  }
+
+  .element-tile {
+    min-width: 0;
+    min-height: 0;
+    border-width: 1px;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .team-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    align-self: start;
+  }
+
+  .actions button {
+    min-height: 38px;
   }
 }
 
