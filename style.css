@@ -2623,7 +2623,7 @@ h1 {
 }
 
 /* A short phone in landscape needs a side-by-side home and denser menus. */
-@media (max-height: 520px) and (min-width: 721px) {
+@media (orientation: landscape) and (max-height: 520px) {
   .login-screen {
     padding-block: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-bottom));
   }
@@ -2719,6 +2719,11 @@ h1 {
   }
 
   .hud {
+    position: fixed;
+    inset: 0;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
     padding-block: 8px;
   }
 
@@ -2730,6 +2735,7 @@ h1 {
   .arena-ui {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: start;
+    min-height: 0;
   }
 
   .board-panel {
@@ -2754,6 +2760,7 @@ h1 {
     grid-template-rows: none;
     grid-auto-rows: auto;
     align-self: start;
+    min-width: 0;
   }
 
   .actions button {
